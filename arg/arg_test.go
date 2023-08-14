@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ahmetson/service-lib/log"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -14,7 +13,6 @@ import (
 // returns the current testing orchestra
 type TestArgumentSuite struct {
 	suite.Suite
-	logger    *log.Logger
 	arguments []string
 }
 
@@ -26,15 +24,11 @@ func (suite *TestArgumentSuite) SetupTest() {
 	os.Args = append(os.Args, "--number-key=5")
 	os.Args = append(os.Args, "./.test.env")
 
-	logger, err := log.New("test_suite", false)
-	suite.NoError(err)
-
 	suite.arguments = []string{
 		"plain",
 		"account",
 		"number-key=5",
 	}
-	suite.logger = logger
 }
 
 // All methods that begin with "Test" are run as tests within a
