@@ -26,6 +26,11 @@ func GetPath(execPath string, mainPath string) string {
 	return filepath.Join(execPath, mainPath)
 }
 
+// FileName returns the file name by removing the directory path
+func FileName(path string) string {
+	return filepath.Base(path)
+}
+
 // SplitServicePath returns the directory, file name without extension part.
 //
 // The function doesn't validate the path.
