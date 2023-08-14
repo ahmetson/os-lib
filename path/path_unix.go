@@ -8,6 +8,6 @@ import (
 )
 
 // BinPath Creates a binary file
-func BinPath(url string, name string) string {
-	return filepath.Join(c.Bin, url+"/bin")
+func BinPath(dir string, name string) string {
+	return filepath.Join(dir, name)
 }
