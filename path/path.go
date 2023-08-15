@@ -82,3 +82,24 @@ func DirExists(path string) (bool, error) {
 
 	return true, nil
 }
+
+// MakePath creates all the directories, including the nested ones.
+func MakePath(path string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			if err := os.MkdirAll(path, 0777); err != nil {
+				return fmt.Errorf("failed to create a directory at '%s' path: %w", path, err)
+			}
+			return nil
+		} else {
+			return fmt.Errorf("failed to read '%s': %w", path, err)
+		}
+	}
+
+	if !info.IsDir() {
+		return fmt.Errorf("the path '%s' is not a directory", path)
+	}
+
+	return nil
+}
