@@ -47,7 +47,7 @@ func SplitServicePath(servicePath string) (string, string) {
 	return dir, fileName
 }
 
-// FileExists returns true if the file exists. if the path is a directory, it will return false.
+// FileExists returns true if the file exists. if the path is a directory, it will return an error.
 func FileExists(path string) (bool, error) {
 	info, err := os.Stat(path)
 	if err != nil {
@@ -60,6 +60,24 @@ func FileExists(path string) (bool, error) {
 
 	if info.IsDir() {
 		return false, fmt.Errorf("path('%s') is directory", path)
+	}
+
+	return true, nil
+}
+
+// DirExists returns true if the directory exists. if the path is a file, it will return an error
+func DirExists(path string) (bool, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		} else {
+			return false, fmt.Errorf("os.Stat('%s'): %w", path, err)
+		}
+	}
+
+	if !info.IsDir() {
+		return false, fmt.Errorf("path('%s') is not directory", path)
 	}
 
 	return true, nil
