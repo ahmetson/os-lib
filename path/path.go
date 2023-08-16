@@ -57,7 +57,6 @@ func DirAndFileName(fileDir string) (string, string) {
 func FileExist(fileDir string) (bool, error) {
 	info, err := os.Stat(fileDir)
 	if err != nil {
-		fmt.Printf("failed to get stats of %s: %v\n", fileDir, err)
 		if os.IsNotExist(err) {
 			return false, nil
 		} else {
