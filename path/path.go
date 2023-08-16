@@ -6,85 +6,94 @@ import (
 	"path/filepath"
 )
 
-// GetExecPath returns the current path of the executable
-func GetExecPath() (string, error) {
-	ex, err := os.Executable()
+// CurrentDir returns the directory of the binary
+func CurrentDir() (string, error) {
+	exe, err := os.Executable()
 	if err != nil {
 		return "", err
 	}
-	exPath := filepath.Dir(ex)
-	return exPath, nil
+	dirPath := filepath.Dir(exe)
+	return dirPath, nil
 }
 
-// GetPath returns the path related to the execPath.
-// If the path itself is absolute, then it's returned directly
-func GetPath(execPath string, mainPath string) string {
-	if filepath.IsAbs(mainPath) {
-		return mainPath
+// AbsDir returns the absolute path of the dir.
+// If the directory is not absolute, then it will make an absolute path from the current directory.
+func AbsDir(currentDir string, dirPath string) string {
+	if filepath.IsAbs(dirPath) {
+		return dirPath
 	}
 
-	return filepath.Join(execPath, mainPath)
+	return filepath.Join(currentDir, dirPath)
 }
 
 // FileName returns the file name by removing the directory path
-func FileName(path string) string {
-	return filepath.Base(path)
+func FileName(filePath string) string {
+	return filepath.Base(filePath)
 }
 
-// SplitServicePath returns the directory, file name without extension part.
+// NoExtension returns the file name without an extension
+func NoExtension(filename string) string {
+	var extension = filepath.Ext(filename)
+	return filename[0 : len(filename)-len(extension)]
+}
+
+// DirAndFileName returns the directory, file name without extension part.
 //
 // The function doesn't validate the path.
 // Therefore, call this function after validateServicePath()
-func SplitServicePath(servicePath string) (string, string) {
-	dir, fileName := filepath.Split(servicePath)
+func DirAndFileName(fileDir string) (string, string) {
+	dir, fileName := filepath.Split(fileDir)
 
 	if len(dir) == 0 {
 		dir = "."
+	} else {
+		dir = dir[0 : len(dir)-1]
 	}
-
-	fileName = fileName[0 : len(fileName)-4]
 
 	return dir, fileName
 }
 
-// FileExists returns true if the file exists. if the path is a directory, it will return an error.
-func FileExists(path string) (bool, error) {
-	info, err := os.Stat(path)
+// FileExist returns true if the file exists. if the path is a directory, it will return an error.
+func FileExist(fileDir string) (bool, error) {
+	info, err := os.Stat(fileDir)
 	if err != nil {
+		fmt.Printf("failed to get stats of %s: %v\n", fileDir, err)
 		if os.IsNotExist(err) {
 			return false, nil
 		} else {
-			return false, fmt.Errorf("os.Stat('%s'): %w", path, err)
+			return false, fmt.Errorf("os.Stat('%s'): %w", fileDir, err)
 		}
 	}
 
 	if info.IsDir() {
-		return false, fmt.Errorf("path('%s') is directory", path)
+		return false, fmt.Errorf("fileDir('%s') is directory", fileDir)
 	}
 
 	return true, nil
 }
 
-// DirExists returns true if the directory exists. if the path is a file, it will return an error
-func DirExists(path string) (bool, error) {
-	info, err := os.Stat(path)
+// DirExist returns true if the directory exists. if the path is a file, it will return an error
+func DirExist(dir string) (bool, error) {
+	info, err := os.Stat(dir)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false, nil
 		} else {
-			return false, fmt.Errorf("os.Stat('%s'): %w", path, err)
+			return false, fmt.Errorf("os.Stat('%s'): %w", dir, err)
 		}
 	}
 
 	if !info.IsDir() {
-		return false, fmt.Errorf("path('%s') is not directory", path)
+		return false, fmt.Errorf("dir('%s') is not directory", dir)
 	}
 
 	return true, nil
 }
 
-// MakePath creates all the directories, including the nested ones.
-func MakePath(path string) error {
+// MakeDir creates all the directories, including the nested ones.
+// If the directories exist, it will skip it.
+// If the directory exists, and it includes the file name, it will throw error.
+func MakeDir(path string) error {
 	info, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {

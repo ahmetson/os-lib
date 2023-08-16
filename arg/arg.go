@@ -26,9 +26,9 @@ func GetEnvPaths() ([]string, error) {
 		return []string{}, nil
 	}
 
-	execPath, err := path.GetExecPath()
+	execPath, err := path.CurrentDir()
 	if err != nil {
-		return []string{}, fmt.Errorf("path.GetExecPath: %w", err)
+		return []string{}, fmt.Errorf("path.CurrentDir: %w", err)
 	}
 	paths := make([]string, 0)
 
@@ -46,7 +46,7 @@ func GetEnvPaths() ([]string, error) {
 			continue
 		}
 
-		paths = append(paths, path.GetPath(execPath, arg))
+		paths = append(paths, path.AbsDir(execPath, arg))
 	}
 
 	return paths, nil
