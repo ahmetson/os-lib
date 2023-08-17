@@ -1,7 +1,6 @@
 package arg
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -11,20 +10,20 @@ import (
 // Define the suite, and absorb the built-in basic suite
 // functionality from testify - including a T() method which
 // returns the current testing orchestra
-type TestArgumentSuite struct {
+type TestArgSuite struct {
 	suite.Suite
-	arguments []string
+	flags []string
 }
 
 // Make sure that Account is set to five
 // before each test
-func (suite *TestArgumentSuite) SetupTest() {
+func (suite *TestArgSuite) SetupTest() {
 	os.Args = append(os.Args, "--plain")
 	os.Args = append(os.Args, "--account")
 	os.Args = append(os.Args, "--number-key=5")
 	os.Args = append(os.Args, "./.test.env")
 
-	suite.arguments = []string{
+	suite.flags = []string{
 		"plain",
 		"account",
 		"number-key=5",
@@ -33,37 +32,38 @@ func (suite *TestArgumentSuite) SetupTest() {
 
 // All methods that begin with "Test" are run as tests within a
 // suite.
-func (suite *TestArgumentSuite) TestRun() {
-	fmt.Println(os.Args)
-	arguments := GetArguments()
-	suite.Require().EqualValues(suite.arguments, arguments)
+func (suite *TestArgSuite) Test_0_Run() {
+	flags := Flags()
+	suite.Require().EqualValues(suite.flags, flags)
 
-	pathArguments, _ := GetEnvPaths()
-	suite.Require().Len(pathArguments, 1)
-	pathArguments[0] = "./.test.env"
+	suite.True(FlagExist("number-key"))
+	suite.Equal("5", FlagValue("number-key"))
+	suite.True(FlagExist("plain"))
+	suite.True(FlagExist("account"))
+	suite.False(FlagExist("./.test.env"))
 
-	// This -- prefixed key doesn't exist
-	suite.False(Has(arguments, "not_exist"))
-	// The .env variable doesn't exist
-	suite.False(Has(arguments, "./.test.env"))
-	// Key Value arg is returned
-	suite.True(Has(arguments, "number-key"))
-	suite.True(Has(arguments, "plain"))
-	suite.True(Has(arguments, "account"))
+	paths := EnvPaths()
+	suite.Require().Len(paths, 1)
+	suite.Require().Equal(paths[0], "./.test.env")
+}
 
-	// Identical to arg.Has() except that
-	// arguments are loaded from OS directly
-	suite.False(Exist("not_exist"))
-	// The .env variable doesn't exist
-	suite.False(Exist("./.test.env"))
-	// Key Value arg is returned
-	suite.True(Exist("number-key"))
-	suite.True(Exist("plain"))
-	suite.True(Exist("account"))
+func (suite *TestArgSuite) Test_1_Flag() {
+	name := "name"
+	value := "value"
+	expected := "--name"
+	flag := NewFlag(name)
+	suite.Require().Equal(expected, flag)
+
+	expected = "--name=value"
+	flag = NewFlag(name, value)
+	suite.Require().Equal(expected, flag)
+
+	suite.Require().Equal(name, ExtractFlagName(flag))
+	suite.Require().Equal(value, ExtractFlagValue(flag))
 }
 
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run
 func TestCommand(t *testing.T) {
-	suite.Run(t, new(TestArgumentSuite))
+	suite.Run(t, new(TestArgSuite))
 }

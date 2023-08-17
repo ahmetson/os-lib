@@ -16,9 +16,9 @@ import (
 //
 // The .env files locations are related to the exec path
 func LoadAnyEnv() error {
-	opts, err := arg.GetEnvPaths()
+	opts, err := arg.EnvPaths()
 	if err != nil {
-		return fmt.Errorf("arg.GetEnvPaths: %w", err)
+		return fmt.Errorf("arg.EnvPaths: %w", err)
 	}
 
 	if len(opts) == 0 {

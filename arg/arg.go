@@ -1,144 +1,133 @@
-// Package arg is used to read command line arguments of the application.
+// Package arg is used to read command line flags of the application.
+//
+// The SDS supports a Flag which is composed of name and optionally a value.
+//
+// Flags() returns all flags
+// EnvPaths() returns the env file paths.
+// FlagExist(name) flag exists?
+// ExtractFlagValue(flag) finds the flag and returns the value of it.
+// ExtractFlagName(flag) returns the flag name.
+// IsFlag(str) returns true if the given string has a prefix
+// NewFlag(name string, values ...string) returns a new flag by its name
+// FlagValue(name) returns the flag value
 package arg
 
 import (
 	"fmt"
-	"github.com/ahmetson/os-lib/path"
 	"os"
 	"strings"
 )
 
-// List of service flags
 const (
-	Secure             = "secure"       // If passed, then TCP sockets will require authentication. Default is false
-	BuildConfiguration = "build-config" // returns the extensions, controllers that the service will need
-	Path               = "path"         // The file path to include for generation it should end with .yml
-	Url                = "url"          // The url of the service to set when building the config
-	Configuration      = "config"       // The path to the config. It should end with .yml
+	Prefix = "--"
+	Sep    = "="
 )
 
-// GetEnvPaths any command line data that comes after the files are .env file paths
-// Any arg for application without '--' prefix is considered to be path to the
-// environment file.
-func GetEnvPaths() ([]string, error) {
-	args := os.Args[1:]
-	if len(args) == 0 {
-		return []string{}, nil
+// NewFlag creates a new flag with the given name and optionally with a value
+func NewFlag(name string, values ...string) string {
+	flag := Prefix + name
+	if len(values) > 0 {
+		flag += Sep + values[0]
 	}
 
-	execPath, err := path.CurrentDir()
-	if err != nil {
-		return []string{}, fmt.Errorf("path.CurrentDir: %w", err)
-	}
-	paths := make([]string, 0)
-
-	for _, arg := range args {
-		if len(arg) < 4 {
-			continue
-		}
-
-		lastPart := arg[len(arg)-4:]
-		if lastPart != ".env" {
-			continue
-		}
-
-		if arg[:2] == "--" {
-			continue
-		}
-
-		paths = append(paths, path.AbsDir(execPath, arg))
-	}
-
-	return paths, nil
+	return flag
 }
 
-// GetArguments Load arguments, not the environment variable paths.
-// Arguments starts with '--'
-func GetArguments() []string {
+// Flags returns the flags from application flags.
+func Flags() []string {
 	args := os.Args[1:]
 	if len(args) == 0 {
 		return []string{}
 	}
 
-	parameters := make([]string, 0)
-
-	for _, arg := range args {
-		if arg[:2] == "--" {
-			parameters = append(parameters, arg[2:])
+	count := 0
+	for _, str := range args {
+		if IsFlag(str) {
+			count++
 		}
 	}
 
-	return parameters
-}
+	flags := make([]string, count)
 
-// Exist This function is same as `env.HasArgument`,
-// except `env.ArgumentExist()` loads arguments automatically.
-func Exist(argument string) bool {
-	return Has(GetArguments(), argument)
-}
-
-// ExtractValue Extracts the value of the arg if it has.
-// The arg value comes after "=".
-//
-// This function gets the arguments from the CLI automatically.
-//
-// If the arg doesn't exist, then returns an empty string.
-// Therefore, you should check for the arg existence by calling `arg.Exist()`
-func ExtractValue(arguments []string, required string) (string, error) {
-	found := ""
-	for _, argument := range arguments {
-		// doesn't have a value
-		if argument == required {
-			continue
-		}
-
-		length := len(required)
-		if len(argument) > length && argument[:length] == required {
-			found = argument
-			break
+	i := 0
+	for _, str := range args {
+		if IsFlag(str) {
+			flags[i] = strings.TrimPrefix(str, Prefix)
+			i++
 		}
 	}
 
-	value, err := getValue(found)
-	if err != nil {
-		return "", fmt.Errorf("getValue for %s arg: %w", required, err)
-	}
-
-	return value, nil
+	return flags
 }
 
-// Value Extracts the value of the arg if it's exists.
-// Similar to getValue() but doesn't accept the
-func Value(name string) (string, error) {
-	return ExtractValue(GetArguments(), name)
+// IsFlag returns true, if the given string contains a flag prefix
+func IsFlag(str string) bool {
+	return strings.HasPrefix(str, Prefix)
 }
 
-// getValue Extracts the value of the arg.
-// Argument comes after '='
-func getValue(argument string) (string, error) {
-	parts := strings.Split(argument, "=")
-	if len(parts) != 2 {
-		return "", fmt.Errorf("strings.split(`%s`) should has two parts", argument)
-	}
-
-	if len(parts[1]) == 0 {
-		return "", fmt.Errorf("value of --%s is empty", argument)
-	}
-	return parts[1], nil
-}
-
-// Has checks is the required arg exists among arguments or not.
-func Has(arguments []string, required string) bool {
-	for _, argument := range arguments {
-		if argument == required {
-			return true
-		}
-
-		length := len(required)
-		if len(argument) > length && argument[:length] == required {
+// FlagExist is given flag exists or not.
+func FlagExist(name string) bool {
+	flags := Flags()
+	for _, flag := range flags {
+		if ExtractFlagName(flag) == name {
 			return true
 		}
 	}
 
 	return false
+}
+
+// ExtractFlagName returns the flag name.
+// If the flag is prefixed, then it will be trimmed.
+func ExtractFlagName(flag string) string {
+	return strings.Split(strings.TrimPrefix(flag, Prefix), Sep)[0]
+}
+
+// ExtractFlagValue Extracts the value of the arg if it exists.
+func ExtractFlagValue(flag string) string {
+	parts := strings.Split(flag, Sep)
+	if len(parts) != 2 {
+		return ""
+	}
+
+	return parts[1]
+}
+
+func FlagValue(name string) string {
+	names := Flags()
+	for _, flag := range names {
+		if ExtractFlagName(flag) == name {
+			fmt.Printf("%s key was found: %s\n", name, flag)
+			return ExtractFlagValue(flag)
+		}
+		fmt.Printf("%s not in: %s\n", name, flag)
+	}
+
+	return ""
+}
+
+// EnvPaths any command line data that comes after the files are .env file paths
+// Any arg for application without '--' prefix is considered to be path to the
+// environment file.
+func EnvPaths() []string {
+	args := os.Args[1:]
+	if len(args) == 0 {
+		return []string{}
+	}
+
+	paths := make([]string, 0)
+
+	for _, arg := range args {
+		if IsFlag(arg) {
+			continue
+		}
+
+		if !strings.HasSuffix(arg, ".env") {
+			continue
+		}
+
+		paths = append(paths, arg)
+	}
+
+	return paths
 }
