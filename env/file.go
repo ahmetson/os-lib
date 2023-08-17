@@ -4,6 +4,7 @@ package env
 import (
 	"fmt"
 	"github.com/ahmetson/common-lib/data_type/key_value"
+	"github.com/ahmetson/os-lib/path"
 
 	"github.com/ahmetson/os-lib/arg"
 	"github.com/joho/godotenv"
@@ -16,18 +17,23 @@ import (
 //
 // The .env files locations are related to the exec path
 func LoadAnyEnv() error {
-	opts, err := arg.EnvPaths()
+	currentDir, err := path.CurrentDir()
 	if err != nil {
-		return fmt.Errorf("arg.EnvPaths: %w", err)
+		return fmt.Errorf("path.CurrentDir: %w", err)
 	}
 
-	if len(opts) == 0 {
+	paths := arg.EnvPaths()
+	for i, envPath := range paths {
+		paths[i] = path.AbsDir(currentDir, envPath)
+	}
+
+	if len(paths) == 0 {
 		return nil
 	}
 
-	err = godotenv.Load(opts...)
+	err = godotenv.Load(paths...)
 	if err != nil {
-		return fmt.Errorf("godotenv.Load for paths %v: %w", opts, err)
+		return fmt.Errorf("godotenv.Load: %w", err)
 	}
 	return nil
 }
