@@ -13,7 +13,6 @@
 package arg
 
 import (
-	"fmt"
 	"os"
 	"strings"
 )
@@ -97,10 +96,8 @@ func FlagValue(name string) string {
 	names := Flags()
 	for _, flag := range names {
 		if ExtractFlagName(flag) == name {
-			fmt.Printf("%s key was found: %s\n", name, flag)
 			return ExtractFlagValue(flag)
 		}
-		fmt.Printf("%s not in: %s\n", name, flag)
 	}
 
 	return ""
