@@ -50,6 +50,11 @@ func DirAndFileName(fileDir string) (string, string) {
 		dir = dir[0 : len(dir)-1]
 	}
 
+	ext := filepath.Ext(fileName)
+	if len(ext) > 0 {
+		fileName = fileName[:len(fileName)-len(ext)]
+	}
+
 	return dir, fileName
 }
 

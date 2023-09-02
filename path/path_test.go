@@ -14,16 +14,18 @@ import (
 // returns the current testing orchestra
 type TestPathSuite struct {
 	suite.Suite
-	envPath    string // using env as a file to check
-	currentDir string
-	fileName   string
-	dir        string
+	envPath       string // using env as a file to check
+	currentDir    string
+	fileName      string
+	fileNameNoExt string
+	dir           string
 }
 
 // Make sure that Account is set to five
 // before each test
 func (test *TestPathSuite) SetupTest() {
-	test.fileName = ".test.env"
+	test.fileNameNoExt = ".test"
+	test.fileName = test.fileNameNoExt + ".env"
 	test.dir = "configs"
 	test.envPath = filepath.Join("configs", ".test.env")
 
@@ -68,7 +70,7 @@ func (test *TestPathSuite) TestRun() {
 	// DirAndFileName
 	actualDir, actualFileName := DirAndFileName(absPath)
 	test.Require().Equal(filepath.Join(currentDir, test.dir), actualDir)
-	test.Require().Equal(test.fileName, actualFileName)
+	test.Require().Equal(test.fileNameNoExt, actualFileName)
 
 	// FileExist
 	fmt.Printf("abs path: %s\n", absPath)
