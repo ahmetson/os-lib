@@ -1,3 +1,5 @@
+github.com/ahmetson/common-lib v0.0.0-20230825195825-e7b69549b9a1 h1:kcw97M9jxESS9hULBxd/c3Q60VvwYXxxg9wLStINt4g=
+github.com/ahmetson/common-lib v0.0.0-20230825195825-e7b69549b9a1/go.mod h1:33pBXMtRGX5Xseh5t9t9xfo8jaeHNkE3yYyNRdXoY3Y=
 github.com/cakturk/go-netstat v0.0.0-20200220111822-e5b49efee7a5 h1:BjkPE3785EwPhhyuFkbINB+2a1xATwk8SNDWnJiD41g=
 github.com/cakturk/go-netstat v0.0.0-20200220111822-e5b49efee7a5/go.mod h1:jtAfVaU/2cu1+wdSRPWE2c1N2qeAA3K4RH9pYgqwets=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
