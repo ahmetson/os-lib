@@ -3,7 +3,7 @@ package env
 
 import (
 	"fmt"
-	"github.com/ahmetson/common-lib/data_type/key_value"
+	"github.com/ahmetson/datatype-lib/data_type/key_value"
 	"github.com/ahmetson/os-lib/path"
 
 	"github.com/ahmetson/os-lib/arg"
